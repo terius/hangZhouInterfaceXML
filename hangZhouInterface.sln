@@ -14,7 +14,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsFormsApplication1", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DAL", "DAL\DAL.csproj", "{8E148184-FBC1-4FEF-AE06-BE579951A560}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HangZhouService", "HangZhouService\HangZhouService.csproj", "{EC09CD47-C5A2-4E42-99A9-1AAD96B93F60}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataTranService", "HangZhouService\DataTranService.csproj", "{EC09CD47-C5A2-4E42-99A9-1AAD96B93F60}"
 	ProjectSection(ProjectDependencies) = postProject
 		{39EAE9A2-07EB-4407-9A5C-4799FA093890} = {39EAE9A2-07EB-4407-9A5C-4799FA093890}
 	EndProjectSection

@@ -7,8 +7,8 @@
     <ProjectGuid>{EC09CD47-C5A2-4E42-99A9-1AAD96B93F60}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>HangZhouService</RootNamespace>
-    <AssemblyName>HangZhouService</AssemblyName>
+    <RootNamespace>DataTranService</RootNamespace>
+    <AssemblyName>DataTranService</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -71,10 +71,10 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="Properties\DataSources\System.Data.DataSet.datasource" />
-    <None Include="Service References\ServiceReference1\HangZhouService.ServiceReference1.GetInfoResponse.datasource">
+    <None Include="Service References\ServiceReference1\DataTranService.ServiceReference1.GetInfoResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\ServiceReference1\HangZhouService.ServiceReference1.SetExamResponse.datasource">
+    <None Include="Service References\ServiceReference1\DataTranService.ServiceReference1.SetExamResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\ServiceReference1\yService.wsdl" />

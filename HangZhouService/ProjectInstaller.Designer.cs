@@ -1,4 +1,4 @@
-﻿namespace HangZhouInterfaceService
+﻿namespace DataTranService
 {
     partial class ProjectInstaller
     {
@@ -39,9 +39,9 @@
             // 
             // serviceInstaller1
             // 
-            this.serviceInstaller1.Description = "杭州Xray系统数据传输服务";
-            this.serviceInstaller1.DisplayName = "HangZhouInterfaceService";
-            this.serviceInstaller1.ServiceName = "HangZhouInterfaceService";
+            this.serviceInstaller1.Description = "沈阳Xray系统数据传输服务";
+            this.serviceInstaller1.DisplayName = "ShenYangDataTranService";
+            this.serviceInstaller1.ServiceName = "ShenYangDataTranService";
             this.serviceInstaller1.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
             // 
             // ProjectInstaller

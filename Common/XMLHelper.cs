@@ -98,41 +98,66 @@ namespace Common
         #endregion
 
         #region 序列化
-        /// <summary>
-        /// 序列化
-        /// </summary>
-        /// <param name="type">类型</param>
-        /// <param name="obj">对象</param>
-        /// <returns></returns>
+        ///// <summary>
+        ///// 序列化
+        ///// </summary>
+        ///// <param name="type">类型</param>
+        ///// <param name="obj">对象</param>
+        ///// <returns></returns>
+        //public static string SerializerOld<T>(T obj)
+        //{
+        //    MemoryStream Stream = new MemoryStream();
+
+        //    XmlSerializer xml = new XmlSerializer(typeof(T));
+
+        //    try
+        //    {
+        //        XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+
+        //        //Add an empty namespace and empty value
+        //        ns.Add("", "");
+        //        XmlTextWriter textWriter = new XmlTextWriter(Stream, Encoding.UTF8);//定义输出的编码格式
+
+        //        //序列化对象
+        //        xml.Serialize(textWriter, obj, ns);
+        //    }
+        //    catch (InvalidOperationException)
+        //    {
+        //        throw;
+        //    }
+        //    Stream.Position = 0;
+        //    StreamReader sr = new StreamReader(Stream);
+        //    string str = sr.ReadToEnd();
+
+        //    sr.Dispose();
+        //    Stream.Dispose();
+
+        //    return str;
+        //}
+
         public static string Serializer<T>(T obj)
         {
-            MemoryStream Stream = new MemoryStream();
-        
-            XmlSerializer xml = new XmlSerializer(typeof(T));
-          
-            try
+            XmlSerializer xsSubmit = new XmlSerializer(typeof(T));
+           
+            var xml = "";
+            using (var sww = new Utf8StringWriter())
             {
-                XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+                using (XmlWriter writer = XmlWriter.Create(sww))
+                {
+                    //   XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
 
-                //Add an empty namespace and empty value
-                ns.Add("", "");
-                XmlTextWriter textWriter = new XmlTextWriter(Stream, Encoding.UTF8);//定义输出的编码格式
-               
-                //序列化对象
-                xml.Serialize(textWriter, obj, ns);
+                    //Add an empty namespace and empty value
+                    //  ns.Add("", "");
+                    xsSubmit.Serialize(writer, obj);
+                    xml = sww.ToString(); // Your XML
+                }
             }
-            catch (InvalidOperationException)
-            {
-                throw;
-            }
-            Stream.Position = 0;
-            StreamReader sr = new StreamReader(Stream);
-            string str = sr.ReadToEnd();
+            return xml;
+        }
 
-            sr.Dispose();
-            Stream.Dispose();
-
-            return str;
+        public class Utf8StringWriter : StringWriter
+        {
+            public override Encoding Encoding => Encoding.UTF8;
         }
 
         public static void SerializerToFile<T>(T obj, string fileName)
@@ -161,7 +186,6 @@ namespace Common
                 {
                     using (StreamWriter sw = new StreamWriter(fs, Encoding.UTF8))
                     {
-
                         sw.Write(xmlString);
                         sw.Close();
                     }

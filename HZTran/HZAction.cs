@@ -19,8 +19,11 @@ namespace HangZhouTran
         private readonly int LoopTime1 = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["LoopTime1"]);
         private readonly int LoopTime2 = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["LoopTime1"]);
         private readonly string getFilePath = System.Configuration.ConfigurationManager.AppSettings["GetFilePath"];
-        //  private StringBuilder sbLog;
-        IList<ColumnMap> map;
+        private readonly string sendFilePath = System.Configuration.ConfigurationManager.AppSettings["SendFilePath"];
+        readonly string basePath = AppDomain.CurrentDomain.BaseDirectory;
+        string errorFilePath = "";
+        string oldFilePath = "";
+
         public void BeginRun()
         {
             try
@@ -31,7 +34,7 @@ namespace HangZhouTran
                 // sbLog = new StringBuilder();
                 isRun = true;
                 CheckDirectory();
-           
+
                 Thread MainThread = new Thread(RunTask);
                 MainThread.IsBackground = true;
                 MainThread.Name = "HangZhouXrayServer";
@@ -48,26 +51,24 @@ namespace HangZhouTran
                 Loger.LogMessage("服务报错：" + ex.ToString());
             }
         }
-        readonly string basePath = AppDomain.CurrentDomain.BaseDirectory;
-      
 
-        string errorFilePath = "";
-        string oldFilePath = "";
         private void CheckDirectory()
         {
-            var oldFilePath = basePath + "oldFiles";
+            oldFilePath = basePath + "oldFiles";
             if (!Directory.Exists(oldFilePath))
             {
                 Directory.CreateDirectory(oldFilePath);
             }
 
-           
+
 
             errorFilePath = basePath + "errorFiles";
             if (!Directory.Exists(errorFilePath))
             {
                 Directory.CreateDirectory(errorFilePath);
             }
+
+
         }
 
         object obRun = new object();
@@ -122,32 +123,58 @@ namespace HangZhouTran
             try
             {
                 var data = da.GetNoSendData();
+                string sendfile;
                 string bill_no;
                 foreach (DataRow dr in data.Rows)
                 {
-                    bill_no = dr["bill_no"].ToString();
-                    PutData(bill_no);
+                    var info = ConvertToSendXMLInfo(dr);
+                    //sendfile = Path.Combine(sendFilePath, DateTime.Now.ToString("yyyyMMdd"));
+                    //if (!Directory.Exists(sendfile))
+                    //{
+                    //    Directory.CreateDirectory(sendfile);
+                    //}
+                    bill_no = dr["BILL_NO"].ToString();
+                    sendfile = Path.Combine(sendFilePath, DateTime.Now.ToString("yyyyMMddHHmmssfff") +"_" + bill_no + ".xml");
+                    XmlHelper.SerializerToFile(info, sendfile);
+                    da.UpdateSendDataFlag(bill_no);
                 }
             }
             catch (Exception ex)
             {
-                Loger.LogMessage(ex);
+            Loger.LogMessage(ex);
             }
         }
 
-
-
-
-
-        readonly int _saveLog = Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["SaveLog"]);
-        private string AppendTextWithTime(string msg)
+        private SendXMLInfo ConvertToSendXMLInfo(DataRow dr)
         {
-            if (_saveLog != 1)
+            var dtNow = DateTime.Now.ToString("yyyyMMddHHmmss");
+            var info = new SendXMLInfo();
+            info.Head.SendTime = dtNow;
+            info.Body.CMA_INFO_REC.BILL_NO = dr["BILL_NO1"].ToString();
+            info.Body.CMA_INFO_REC.IE_FLAG = dr["I_E_FLAG"].ToString();
+            info.Body.CMA_INFO_REC.LINE_ID = dr["MX_FLAG"].ToString();
+            info.Body.CMA_INFO_REC.VOYAGE_NO = dr["VOYAGE_NO"].ToString();
+            info.Body.CMA_INFO_REC.LOG_NO = dr["BILL_NO"].ToString();
+            info.Body.CMA_INFO_REC.TRADE_CODE = dr["TRADE_CODE"].ToString();
+            info.Body.CMA_INFO_REC.TRADE_NAME = dr["TRADE_NAME"].ToString();
+            info.Body.CMA_INFO_REC.CHECK_TIME = dtNow;
+            info.Body.CMA_INFO_REC.CHECK_MAN = dr["OPT_ID"].ToString();
+            if (dr["M_RESULT"].ToString() == "0" && dr["DEC_TYPE"].ToString() == "0")
             {
-                return "";
+                info.Body.CMA_INFO_REC.CHECK_INFO = "机检放行";
             }
-            return string.Format("{0}----{1}\r\n", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), msg);
+            else if (dr["DEC_TYPE"].ToString() == "1")
+            {
+                info.Body.CMA_INFO_REC.CHECK_INFO = "审单查验";
+            }
+            else if (dr["M_RESULT"].ToString() == "1")
+            {
+                info.Body.CMA_INFO_REC.CHECK_INFO = "即决查验";
+            }
+            return info;
         }
+
+
 
         private void UpdateHead()
         {
@@ -158,68 +185,48 @@ namespace HangZhouTran
                 int rs = 0;
                 foreach (var file in dir.GetFiles())
                 {
-                    var info = XmlHelper.DeserializeFromFile<NEWXMLInfo2>(file.FullName);
-                    if (info != null)
+                    try
                     {
-                        rs = da.SaveGetData(info);
-                        if (rs > 0)
+                        var info = XmlHelper.DeserializeFromFile<NEWXMLInfo2>(file.FullName);
+                        if (info != null)
                         {
-                            var oldFile = Path.Combine(oldFilePath, DateTime.Now.ToString("yyyyMMdd"), file.Name);
-                            file.MoveTo(oldFile);
+                            rs = da.SaveGetData(info);
+                            if (rs > 0)
+                            {
+                                var oldFile = Path.Combine(oldFilePath, DateTime.Now.ToString("yyyyMMdd"));
+                                if (!Directory.Exists(oldFile))
+                                {
+                                    Directory.CreateDirectory(oldFile);
+                                }
+                                oldFile = Path.Combine(oldFile, file.Name);
+                              //  Loger.LogMessage(oldFile);
+                             //   Thread.Sleep(10);
+                                file.MoveTo(oldFile);
+                            }
+                            else
+                            {
+                                file.MoveTo(errorFilePath + "\\" + file.Name);
+                            }
                         }
                         else
                         {
                             file.MoveTo(errorFilePath + "\\" + file.Name);
                         }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        file.MoveTo(errorFilePath + "\\" + file.Name);
+                        Loger.LogMessage(ex.ToString());
+                        throw;
                     }
+                  
                 }
-               
+
             }
             catch (Exception ex)
             {
                 Loger.LogMessage(ex);
             }
         }
-
-
-
-        private void PutData(string bill_no)
-        {
-            var rs = ServerHelper.putData(bill_no);
-            if (rs == null)
-            {
-                throw new Exception("发送机检反馈错误");
-            }
-            if (rs["status"] == "0")
-            {
-                var errmsg = rs["errMsg"];
-             //   da.UpdateSendFailInfoToTMP(bill_no, errmsg);
-            }
-            else
-            {
-              //  da.UpdateSendSuccessInfoToTMP(bill_no);
-            }
-        }
-
-        private bool HasValue(DataSet eData)
-        {
-            return eData != null && eData.Tables.Count > 0 && eData.Tables[0].Rows.Count > 0;
-        }
-
-        //private bool HasValue(XMLInfo eData)
-        //{
-        //    return eData.head.status == 1;
-        //}
-
-        private bool HasValue(DataTable eData)
-        {
-            return eData != null && eData.Rows.Count > 0;
-        }
-
 
 
 

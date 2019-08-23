@@ -52,7 +52,7 @@ namespace Model
                 {
                     itemp = 0;
                     double.TryParse(item.QTY, out itemp);
-                   
+
                     if (str == "")
                     {
                         str = item.GOODS_NAME + "*" + (int)itemp;

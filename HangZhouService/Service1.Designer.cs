@@ -1,4 +1,4 @@
-﻿namespace HangZhouInterfaceService
+﻿namespace DataTranService
 {
     partial class Service1
     {

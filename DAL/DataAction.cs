@@ -1,4 +1,5 @@
-﻿using Model;
+﻿using Common;
+using Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,15 +15,14 @@ namespace DAL
          readonly string HeadTableName = System.Configuration.ConfigurationManager.AppSettings["HeadTableName"];
          readonly string TMPTableName = System.Configuration.ConfigurationManager.AppSettings["TMPTableName"];
 
-        private string GetNoSendSQL = "select  bill_no from {0} where send_flag2 = '0'";
+        private string GetNoSendSQL = "select  BILL_NO1,I_E_FLAG,MX_FLAG,VOYAGE_NO,BILL_NO,TRADE_CODE,TRADE_NAME,OPT_ID,M_RESULT,DEC_TYPE from {0} where send_flag = 0";
         private string updateSQL;
         private string insertSQL;
         public DataAction()
         {
-          
             GetNoSendSQL = string.Format(GetNoSendSQL, TMPTableName);
-
             CheckBILLNO_SQL = string.Format(CheckBILLNO_SQL, HeadTableName);
+            UpdateSendDataFlag_SQL = string.Format(UpdateSendDataFlag_SQL, TMPTableName);
         }
 
       
@@ -91,14 +91,26 @@ namespace DAL
             return DbHelperSQL.Exists(CheckBILLNO_SQL, sqlparams);
         }
 
-    
+
+        string UpdateSendDataFlag_SQL = "update {0} set send_flag=1 where BILL_NO=@BILL_NO";
+        public int UpdateSendDataFlag(string bill_no)
+        {
+            SqlParameter[] sqlparams = {
+                 new SqlParameter("@BILL_NO",bill_no)
+            };
+            return DbHelperSQL.ExecuteSql(UpdateSendDataFlag_SQL, sqlparams);
+        }
+
+
         public int SaveGetData(NEWXMLInfo2 info)
         {
             string billno = "";
+            int rs = 0;
             foreach (var item in info.Body.CMA_INFO)
             {
                 billno = item.GOODS_HEAD.LOG_NO;
                 IList<SqlParameter> sqlparams = new List<SqlParameter>();
+              //  Loger.LogMessage(XmlHelper.Serializer(item.GOODS_HEAD));
                 sqlparams.Add(new SqlParameter("@TRAF_NAME", item.GOODS_HEAD.TRAF_NAME));
                 sqlparams.Add(new SqlParameter("@VOYAGE_NO", item.GOODS_HEAD.VOYAGE_NO));
                 sqlparams.Add(new SqlParameter("@I_E_FLAG", item.GOODS_HEAD.IE_FLAG));
@@ -113,16 +125,16 @@ namespace DAL
                 if (CheckBillNoExist(billno)) //已存在就更新
                 {
                     CreateUpdateSql(sqlparams, "READ_flag=READ_flag+1,READ_time=getdate()");
-                    return DbHelperSQL.ExecuteSql(updateSQL, sqlparams);
+                    rs += DbHelperSQL.ExecuteSql(updateSQL, sqlparams);
                 }
                 else
                 {
                     CreateInsertSql(sqlparams);
-                    return DbHelperSQL.ExecuteSql(insertSQL, sqlparams);
+                    rs += DbHelperSQL.ExecuteSql(insertSQL, sqlparams);
                 }
 
             }
-            return 0;
+            return rs;
 
         }
 

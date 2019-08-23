@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 //using HangZhouTran;
 
-namespace HangZhouInterfaceService
+namespace DataTranService
 {
     public partial class Service1 : ServiceBase
     {

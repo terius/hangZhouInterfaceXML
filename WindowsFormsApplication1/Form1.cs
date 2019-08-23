@@ -15,6 +15,7 @@ namespace WindowsFormsApplication1
     public partial class Form1 : Form
     {
         DataAction da = new DataAction();
+        HZAction action = new HZAction();
         private readonly string BackUpPath = System.Configuration.ConfigurationManager.AppSettings["BackupPath"];
         private readonly string ReadPath = System.Configuration.ConfigurationManager.AppSettings["ReadPath"];
         private readonly string ResponsePath = System.Configuration.ConfigurationManager.AppSettings["ResponsePath"];
@@ -36,18 +37,12 @@ namespace WindowsFormsApplication1
 
         IList<ColumnMap> map;
 
-        private void InfoToXML()
-        {
-            var info = new NEWXMLInfo2();
-            info.Head = new head2();
-            info.Body = new body2();
-            info.Body.CMA_INFO = new List<CMA_INFO>();
-            var xml = XmlHelper.Serializer(info);
-        }
+
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            InfoToXML();
+            action.BeginRun();
+            return;
             var xx = XmlHelper.DeserializeFromFile<NEWXMLInfo2>("9.xml");
             var aa = xx.Body.CMA_INFO[0].MAIN_G_NAME;
             GetColumnMap();
@@ -129,7 +124,7 @@ namespace WindowsFormsApplication1
                 }
 
 
-             
+
 
 
             }
@@ -140,8 +135,8 @@ namespace WindowsFormsApplication1
             }
 
             DataAction da = new DataAction();
-          //  var rs = da.UpdateTmp(map, xmlItems);
-          //  MessageBox.Show(rs.ToString());
+            //  var rs = da.UpdateTmp(map, xmlItems);
+            //  MessageBox.Show(rs.ToString());
             //   var xmlInfo = XmlHelper.DeserializeFromFile<NEWXMLInfo>(filePath);
 
 
@@ -191,7 +186,7 @@ namespace WindowsFormsApplication1
             {
                 throw new Exception("映射文件错误");
             }
-         
+
             var tables = lines[0].Split(new char[] { ',', '，' }, StringSplitOptions.RemoveEmptyEntries);
             var xmls = lines[1].Split(new char[] { ',', '，' }, StringSplitOptions.RemoveEmptyEntries);
             if (tables.Length != xmls.Length)
@@ -206,14 +201,14 @@ namespace WindowsFormsApplication1
 
         }
 
-        private async  void textBox1_KeyDown(object sender, KeyEventArgs e)
+        private async void textBox1_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
                 var value = this.textBox1.Text.Trim();
                 if (!string.IsNullOrWhiteSpace(value))
                 {
-                    var res =await  client.GetInfoAsync(value, "");
+                    var res = await client.GetInfoAsync(value, "");
                     AddMessage(res.Body.GetInfoResult);
                 }
             }
